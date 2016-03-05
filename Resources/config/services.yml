@@ -1,0 +1,55 @@
+services:
+    # User Checker
+    ks.core.user_checker:
+        class: Ks\CoreBundle\Security\UserChecker
+
+    # LDAP Authentication
+    ks.core.ldap_authenticator:
+        class:     Ks\CoreBundle\Security\LdapAuthenticator
+        arguments: ["@ks.core.user_checker", "@security.password_encoder", "@ldap", "%ks.core.ldap_user_dn%"]
+
+    # Access control service
+    ks.core.ac:
+        class: Ks\CoreBundle\Services\AC
+        arguments: ["@request_stack", "%ks.core.pwd_management%"]
+
+    # Crud1
+    ks.core.crud1:
+        class: Ks\CoreBundle\Services\Crud1
+        arguments: []
+
+    # menu builder
+    ks.core.menubuilder:
+        class: Ks\CoreBundle\Services\KnpMenuBuilder
+        arguments: ["@router"]
+
+    # User Create Form
+    ks.core.form.type.user_create:
+        class: Ks\CoreBundle\Form\Type\UserCreateType
+        arguments: ["@ks.core.ac"]
+        tags:
+            - { name: form.type }
+
+    # User Edit Form
+    ks.core.form.type.user_edit:
+        class: Ks\CoreBundle\Form\Type\UserEditType
+        arguments: ["@ks.core.ac"]
+        tags:
+            - { name: form.type }
+
+    # User Role Create Form
+    ks.core.form.type.user_role_create:
+        class: Ks\CoreBundle\Form\Type\UserRoleCreateType
+        arguments: ["@doctrine.orm.entity_manager"]
+        tags:
+            - { name: form.type }
+
+    # User Persist Service
+    ks.core.user:
+        class: Ks\CoreBundle\Services\UserPersist
+        arguments: ["@doctrine.orm.entity_manager", "@form.factory", "@ks.core.ac", "@security.password_encoder"]
+
+    # User Role Persist Service
+    ks.core.user_role:
+        class: Ks\CoreBundle\Services\UserRolePersist
+        arguments: ["@doctrine.orm.entity_manager", "@form.factory"]
