@@ -3,22 +3,22 @@ namespace Ks\CoreBundle\Services;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Types;
 
 /**
- * Crud1
+ * DtReport
  *
- * Service
+ * Data Tables Report Service
  */
-class Crud1
+class DtReport
 {
-	private $conn;
+	private $base_query;
 	private $qb;
-	private $conf;
 	private $csv_callback;
 	private $list_callback;
 	private $parameters;
+	private $csv_columns;
 	
 	public function __construct()
     {
@@ -113,11 +113,13 @@ class Crud1
 		$this->parameters[] = array($value, $doctrine_type);
 	}
 	
-	private function getQuery($type, $request)
+	private function getQuery($type, $request, $filters)
 	{
+		$this->qb = clone $this->base_query;
+		
 		$this->parameters = array();
 		
-		// Makes associative array
+		// Makes an associative array
 		$extra_search = $request->get('extra_search');
 		$search = array();
 		
@@ -126,33 +128,13 @@ class Crud1
 				$search[$e['name']] = $e['value'];
 		
 		// Query builder
-		$this->qb = $this->conn->createQueryBuilder();
 		
-		// Select
+		// Select Count
 		if ($type == 'count')
 			$this->qb->select('count(*)');
-		else
-			$this->qb->select(implode(',', $this->conf['sql']['select']));
 		
-		// From
-		$this->qb->from($this->conf['sql']['from'][0], $this->conf['sql']['from'][1]);
-		
-		if (isset($this->conf['sql']['innerJoin']))
-			foreach ($this->conf['sql']['innerJoin'] as $j)
-				$this->qb->innerJoin($j[0], $j[1], $j[2], $j[3]);
-		
-		// Where
-		
-		if (isset($this->conf['sql']['where']))
-			foreach ($this->conf['sql']['where'] as $w)
-				$this->qb->andWhere($w);
-		
-		if (isset($this->conf['sql']['where_param']))
-			foreach ($this->conf['sql']['where_param'] as $p)
-				$this->parameters[] = array($p, null);
-			
 		// Only process allowed filters
-		foreach ($this->conf['filters'] as $k => $v)
+		foreach ($filters as $k => $v)
 		{
 			(isset($v['value'])) ? $value = $v['value'] : $value = false;
 			(isset($v['condition'])) ? $condition = $v['condition'] : $condition = false;
@@ -192,17 +174,17 @@ class Crud1
 		{
 			// Order by
 			if ($request->get('order'))
-			foreach ($request->get('order') as $o)
-			{
-				// Prevents SQL injection to the order by "direction"
-				// http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/query-builder.html#order-by-clause
-				if ( mb_strtoupper($o['dir']) == 'DESC' )
-					$dir = 'desc';
-				else
-					$dir = 'asc';
-				
-				$this->qb->addOrderBy($columns[$o['column']]['data'], $dir);
-			}
+				foreach ($request->get('order') as $o)
+				{
+					// Prevents SQL injection to the order by "direction"
+					// http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/query-builder.html#order-by-clause
+					if ( mb_strtoupper($o['dir']) == 'DESC' )
+						$dir = 'desc';
+					else
+						$dir = 'asc';
+					
+					$this->qb->addOrderBy($columns[$o['column']]['data'], $dir);
+				}
 		
 			// Pagination
 			if ($request->get('length') != -1)
@@ -210,6 +192,8 @@ class Crud1
 					->setFirstResult($request->get('start'))
 					->setMaxResults($request->get('length'));
 		}
+		
+		//var_dump($this->base_query);
 	}
 	
 	/**
@@ -226,7 +210,7 @@ class Crud1
 		$utf8_with_bom = chr(239) . chr(187) . chr(191);
 		fwrite($output, $utf8_with_bom);
 		
-		$headings = $this->conf['csv_columns'];
+		$headings = $this->csv_columns;
 		
 		// output the column headings
 		$csvheadings = array();
@@ -283,10 +267,9 @@ class Crud1
 		);
 	}
 	
-	public function getList(Connection $conn, $request, $conf, $list_callback=false)
+	public function getList(QueryBuilder $qb, $request, $filters, $list_callback=false)
 	{
-		$this->conn = $conn;
-		$this->conf = $conf;
+		$this->base_query = $qb;
 		$this->list_callback = $list_callback;
 		
 		$response = array();
@@ -294,10 +277,10 @@ class Crud1
 		if ($request->get('draw'))
 			$response['draw'] = (int) $request->get('draw');
 		
-		$this->getQuery('full', $request);
+		$this->getQuery('full', $request, $filters);
 		$records = $this->qb->execute()->fetchAll();
 		
-		$this->getQuery('count', $request);
+		$this->getQuery('count', $request, $filters);
 		$count = $this->qb->execute()->fetchColumn(0);
 		
 		$response['recordsTotal'] = $count;
@@ -315,11 +298,12 @@ class Crud1
         );
 	}
 	
-	public function exportCsv(Connection $conn, $request, $conf, $csv_callback=false)
+	public function exportCsv(QueryBuilder $qb, $request, $filters, $csv_filename, $csv_columns, $csv_callback=false)
 	{
-		$this->conn = $conn;
-		$this->conf = $conf;
-		$this->getQuery('export', $request);
+		$this->base_query = $qb;
+		
+		$this->getQuery('export', $request, $filters);
+		$this->csv_columns = $csv_columns;
 		$this->csv_callback = $csv_callback;
 		
 		$response = new StreamedResponse();
@@ -327,7 +311,7 @@ class Crud1
 		
 		$d = $response->headers->makeDisposition(
 			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-			$this->conf['csv_filename']
+			$csv_filename
 		);
 
 		$response->headers->set('Content-Disposition', $d);

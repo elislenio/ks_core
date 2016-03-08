@@ -18,23 +18,6 @@ class BaseController extends Controller
 		return $this->grants[$mask];
 	}
 	
-	protected function getDbEngine($conn='doctrine.dbal.default_connection')
-	{
-		$driver = $this->get($conn)->getDriver()->getName();
-		
-		switch ($driver)
-		{
-			case 'pdo_mysql':
-				return 'mysql';
-				break;
-			case 'pdo_oracle':
-				return 'oracle';
-				break;
-		}
-		
-		return false;
-	}
-	
 	protected function translateError($code)
 	{
 		$msg = "";

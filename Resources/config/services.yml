@@ -13,9 +13,9 @@ services:
         class: Ks\CoreBundle\Services\AC
         arguments: ["@request_stack", "%ks.core.pwd_management%"]
 
-    # Crud1
-    ks.core.crud1:
-        class: Ks\CoreBundle\Services\Crud1
+    # Data Tables Report
+    ks.core.dt_report:
+        class: Ks\CoreBundle\Services\DtReport
         arguments: []
 
     # menu builder

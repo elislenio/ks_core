@@ -6,8 +6,27 @@ abstract class DbAbs
 	const ENG_ORCL = 'oracle';
 	const ENG_MYSQL = 'mysql';
 	
-	public static function longDatetime($engine, $field)
+	public static function getDbEngine($conn)
 	{
+		$driver = $conn->getDriver()->getName();
+		
+		switch ($driver)
+		{
+			case 'pdo_mysql':
+				return self::ENG_MYSQL;
+				break;
+			case 'pdo_oracle':
+				return self::ENG_ORCL;
+				break;
+		}
+		
+		return false;
+	}
+	
+	public static function longDatetime($conn, $field)
+	{
+		$engine = self::getDbEngine($conn);
+		
 		switch ($engine)
 		{
 			case self::ENG_ORCL:
