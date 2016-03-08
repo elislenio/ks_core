@@ -2,6 +2,10 @@
 namespace Ks\CoreBundle\Services;
 
 use Doctrine\ORM\EntityManager;
+use Ks\CoreBundle\Form\Type\MenuCreateType;
+use Ks\CoreBundle\Form\Type\MenuEditType;
+use Ks\CoreBundle\Form\Type\MenuItemCreateType;
+use Ks\CoreBundle\Form\Type\MenuItemEditType;
 use Ks\CoreBundle\Entity\Menu;
 use Ks\CoreBundle\Entity\MenuItem;
 use Ks\CoreBundle\Entity\AccessControl;
@@ -13,10 +17,12 @@ use Ks\CoreBundle\Entity\AccessControl;
 class MenuPersist
 {
 	private $em;
+	private $form_factory;
 	
-	public function __construct(EntityManager $em)
+	public function __construct(EntityManager $em, $form_factory)
     {
 		$this->em = $em;
+		$this->form_factory = $form_factory;
     }
 	
 	public function insert($menu)
@@ -79,5 +85,25 @@ class MenuPersist
 	{
 		$this->em->remove($menu_item);
 		$this->em->flush();
+	}
+	
+	public function getFormCreate($menu)
+	{
+		return $this->form_factory->create(MenuCreateType::class, $menu, array('validation_groups' => array('create')));
+	}
+	
+	public function getFormEdit($menu)
+	{
+		return $this->form_factory->create(MenuEditType::class, $menu, array('validation_groups' => array('update')));
+	}
+	
+	public function getFormItemCreate($menu_item)
+	{
+		return $this->form_factory->create(MenuItemCreateType::class, $menu_item, array('validation_groups' => array('create')));
+	}
+	
+	public function getFormItemEdit($menu_item)
+	{
+		return $this->form_factory->create(MenuItemEditType::class, $menu_item, array('validation_groups' => array('update')));
 	}
 }

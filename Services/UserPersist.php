@@ -6,8 +6,10 @@ use Doctrine\ORM\EntityManager;
 use Ks\CoreBundle\Services\AC;
 use Ks\CoreBundle\Form\Type\UserCreateType;
 use Ks\CoreBundle\Form\Type\UserEditType;
-use Ks\CoreBundle\Form\Type\UserPwdResetType;
 use Ks\CoreBundle\Form\Type\UserRoleCreateType;
+use Ks\CoreBundle\Form\Type\UserPwdResetType;
+use Ks\CoreBundle\Form\Type\UserPwdSelfChangeType;
+use Ks\CoreBundle\Form\Type\UserPwdChangeType;
 use Ks\CoreBundle\Entity\User;
 use Ks\CoreBundle\Entity\UserRole;
 
@@ -31,30 +33,6 @@ class UserPersist
 		$this->ac = $ac;
 		$this->encoder = $encoder;
     }
-	
-	public function getFormCreate()
-	{
-		$this->user = new User();
-		
-		$validation_groups = array('create');
-		
-		if ($this->ac->localPasswordEnabled()) 
-			$validation_groups[] = 'create_local';
-		
-		return $this->form_factory->create(UserCreateType::class, $this->user, array('validation_groups' => $validation_groups));
-	}
-	
-	public function getFormEdit($user)
-	{
-		$this->user = $user;
-		return $this->form_factory->create(UserEditType::class, $this->user, array('validation_groups' => array('update')));
-	}
-	
-	public function getFormPwdReset($user)
-	{
-		$this->user = $user;
-		return $this->form_factory->create(UserPwdResetType::class, $this->user, array('validation_groups' => array('pwdreset')));
-	}
 	
 	public function insert()
 	{
@@ -83,6 +61,24 @@ class UserPersist
 		$this->em->flush();
 	}
 	
+	public function getFormCreate()
+	{
+		$this->user = new User();
+		
+		$validation_groups = array('create');
+		
+		if ($this->ac->localPasswordEnabled()) 
+			$validation_groups[] = 'create_local';
+		
+		return $this->form_factory->create(UserCreateType::class, $this->user, array('validation_groups' => $validation_groups));
+	}
+	
+	public function getFormEdit($user)
+	{
+		$this->user = $user;
+		return $this->form_factory->create(UserEditType::class, $this->user, array('validation_groups' => array('update')));
+	}
+	
 	public function resetPwd()
 	{
 		// Password encoding
@@ -94,12 +90,32 @@ class UserPersist
 		$this->em->flush();
 	}
 	
-	public function getFormRoleAssign($user)
+	public function setPasswordSelf($user, $password)
 	{
-		$this->user_role = new UserRole();
-		$this->user_role->setUser($user);
-		$this->user_role->setUserId($user->getId());
-		return $this->form_factory->create(UserRoleCreateType::class, $this->user_role, array('validation_groups' => array('create')));
+		// Password encoding
+		$encoded = $this->encoder->encodePassword($user, $password);
+		$user->setPassword($encoded);
+		$user->setPasswordExpired(false);
+		$user->setGeneratedPassword('');
+		
+		$this->em->persist($user);
+		$this->em->flush();
+	}
+	
+	public function getFormPwdReset($user)
+	{
+		$this->user = $user;
+		return $this->form_factory->create(UserPwdResetType::class, $this->user, array('validation_groups' => array('pwdreset')));
+	}
+	
+	public function getFormPwdSelfChange()
+	{
+		return $this->form_factory->create(UserPwdSelfChangeType::class);
+	}
+	
+	public function getFormPwdChange()
+	{
+		return $this->form_factory->create(UserPwdChangeType::class);
 	}
 	
 	public function insertRole()
@@ -114,5 +130,13 @@ class UserPersist
 	{
 		$this->em->remove($user_role);
 		$this->em->flush();
+	}
+	
+	public function getFormRoleAssign($user)
+	{
+		$this->user_role = new UserRole();
+		$this->user_role->setUser($user);
+		$this->user_role->setUserId($user->getId());
+		return $this->form_factory->create(UserRoleCreateType::class, $this->user_role, array('validation_groups' => array('create')));
 	}
 }

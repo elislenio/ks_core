@@ -6,13 +6,17 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type as FormType;
 
-class UserPwdResetType extends AbstractType
+class AclEditType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
+	public function buildForm(FormBuilderInterface $builder, array $options)
     {
+		$acl = $options['data'];
+		
         $builder
-			->add('generated_password', FormType\TextType::class)
-			->add('gen_pwd', FormType\ButtonType::class)
+			->add('mask_view', FormType\CheckboxType::class)
+			->add('mask_create', FormType\CheckboxType::class)
+			->add('mask_edit', FormType\CheckboxType::class)
+			->add('mask_delete', FormType\CheckboxType::class)
 			->add('save', FormType\SubmitType::class)
         ;
     }
@@ -20,7 +24,7 @@ class UserPwdResetType extends AbstractType
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults(array(
-			'data_class' => 'Ks\CoreBundle\Entity\User'
+			'data_class' => 'Ks\CoreBundle\Entity\AccessControlList'
 		));
 	}
 }

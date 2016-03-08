@@ -30,8 +30,8 @@ class UserRoleCreateType extends AbstractType
 		
 		$builder
 			->add('user_id', FormType\HiddenType::class)
-			->add('role_id', FormType\ChoiceType::class, array('label' => 'Rol', 'choices' => $this->getAvailableRolesList(), 'choices_as_values' => true))
-			->add('save', FormType\SubmitType::class, array('label' => 'Guardar'));
+			->add('role_id', FormType\ChoiceType::class, array('choices' => $this->getAvailableRolesList(), 'choices_as_values' => true))
+			->add('save', FormType\SubmitType::class);
     }
 	
 	private function getAvailableRolesList()

@@ -44,22 +44,43 @@ services:
         tags:
             - { name: form.type }
 
+    # ACL Create Form
+    ks.core.form.type.acl_create:
+        class: Ks\CoreBundle\Form\Type\AclCreateType
+        arguments: ["@doctrine.orm.entity_manager"]
+        tags:
+            - { name: form.type }
+
+    # Menu Item Create Form
+    ks.core.form.type.menu_item_create:
+        class: Ks\CoreBundle\Form\Type\MenuItemCreateType
+        arguments: ["@doctrine.orm.entity_manager"]
+        tags:
+            - { name: form.type }
+
+    # Menu Item Edit Form
+    ks.core.form.type.menu_item_edit:
+        class: Ks\CoreBundle\Form\Type\MenuItemEditType
+        arguments: ["@doctrine.orm.entity_manager"]
+        tags:
+            - { name: form.type }
+
     # User Persist Service
-    ks.core.user:
+    ks.core.user_model:
         class: Ks\CoreBundle\Services\UserPersist
         arguments: ["@doctrine.orm.entity_manager", "@form.factory", "@ks.core.ac", "@security.password_encoder"]
 
     # Role Persist Service
-    ks.core.role:
+    ks.core.role_model:
         class: Ks\CoreBundle\Services\RolePersist
-        arguments: ["@doctrine.orm.entity_manager"]
+        arguments: ["@doctrine.orm.entity_manager", "@form.factory"]
 
     # Menu Persist Service
-    ks.core.menu:
+    ks.core.menu_model:
         class: Ks\CoreBundle\Services\MenuPersist
-        arguments: ["@doctrine.orm.entity_manager"]
+        arguments: ["@doctrine.orm.entity_manager", "@form.factory"]
 
     # AC Persist Service
-    ks.core.ac_persist:
+    ks.core.ac_model:
         class: Ks\CoreBundle\Services\AcPersist
-        arguments: ["@doctrine.orm.entity_manager"]
+        arguments: ["@doctrine.orm.entity_manager", "@form.factory"]

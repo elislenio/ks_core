@@ -26,20 +26,20 @@ class UserEditType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
 		$builder
-            ->add('username', FormType\TextType::class, array('label' => 'Nombre de usuario'))
+            ->add('username', FormType\TextType::class)
 			->add('email')
-			->add('first_name', FormType\TextType::class, array('label' => 'Nombre'))
-			->add('last_name', FormType\TextType::class, array('label' => 'Apellido'))
-			->add('picture', FormType\TextType::class, array('label' => 'Imagen'))
-			->add('locked', FormType\CheckboxType::class, array('label' => 'Bloqueado'));
+			->add('first_name', FormType\TextType::class)
+			->add('last_name', FormType\TextType::class)
+			->add('picture', FormType\TextType::class)
+			->add('locked', FormType\CheckboxType::class);
 		
 		if ($this->ac->localPasswordEnabled())
 		{
 			$builder
-				->add('password_expired', FormType\CheckboxType::class, array('label' => 'Contraseña expirada'));
+				->add('password_expired', FormType\CheckboxType::class);
 		}
 		
 		$builder
-			->add('save', FormType\SubmitType::class, array('label' => 'Guardar'));
+			->add('save', FormType\SubmitType::class);
     }
 }

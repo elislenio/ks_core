@@ -26,20 +26,20 @@ class UserCreateType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options)
     {
 		$builder
-            ->add('username', FormType\TextType::class, array('label' => 'Nombre de usuario'))
+            ->add('username', FormType\TextType::class)
 			->add('email')
-			->add('first_name', FormType\TextType::class, array('label' => 'Nombre'))
-			->add('last_name', FormType\TextType::class, array('label' => 'Apellido'))
-			->add('picture', FormType\TextType::class, array('label' => 'Imagen'));
+			->add('first_name', FormType\TextType::class)
+			->add('last_name', FormType\TextType::class)
+			->add('picture', FormType\TextType::class);
 		
 		if ($this->ac->localPasswordEnabled())
 		{
 			$builder
-				->add('generated_password', FormType\TextType::class, array('label' => 'Contraseña', 'attr' => array('readonly' => 'readonly')))
-				->add('gen_pwd', FormType\ButtonType::class, array('label' => 'Generar', 'attr' => array('onclick' => 'genPwd()')));
+				->add('generated_password', FormType\TextType::class)
+				->add('gen_pwd', FormType\ButtonType::class);
 		}
 		
 		$builder
-			->add('save', FormType\SubmitType::class, array('label' => 'Guardar'));
+			->add('save', FormType\SubmitType::class);
     }
 }
