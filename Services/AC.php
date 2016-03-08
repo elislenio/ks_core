@@ -54,4 +54,11 @@ class AC
 		
 		return false;
 	}
+	
+	public function genPassword()
+	{
+		// Get a secure random number, then hash and substr
+		$random = random_bytes(10);
+		return mb_substr(rtrim(strtr(base64_encode($random), '+/', '-_'), '='),0,8);
+	}
 }

@@ -49,7 +49,17 @@ services:
         class: Ks\CoreBundle\Services\UserPersist
         arguments: ["@doctrine.orm.entity_manager", "@form.factory", "@ks.core.ac", "@security.password_encoder"]
 
-    # User Role Persist Service
-    ks.core.user_role:
-        class: Ks\CoreBundle\Services\UserRolePersist
-        arguments: ["@doctrine.orm.entity_manager", "@form.factory"]
+    # Role Persist Service
+    ks.core.role:
+        class: Ks\CoreBundle\Services\RolePersist
+        arguments: ["@doctrine.orm.entity_manager"]
+
+    # Menu Persist Service
+    ks.core.menu:
+        class: Ks\CoreBundle\Services\MenuPersist
+        arguments: ["@doctrine.orm.entity_manager"]
+
+    # AC Persist Service
+    ks.core.ac_persist:
+        class: Ks\CoreBundle\Services\AcPersist
+        arguments: ["@doctrine.orm.entity_manager"]

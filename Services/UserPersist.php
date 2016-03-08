@@ -7,7 +7,9 @@ use Ks\CoreBundle\Services\AC;
 use Ks\CoreBundle\Form\Type\UserCreateType;
 use Ks\CoreBundle\Form\Type\UserEditType;
 use Ks\CoreBundle\Form\Type\UserPwdResetType;
+use Ks\CoreBundle\Form\Type\UserRoleCreateType;
 use Ks\CoreBundle\Entity\User;
+use Ks\CoreBundle\Entity\UserRole;
 
 /**
  * UserPersist
@@ -20,6 +22,7 @@ class UserPersist
 	private $encoder;
 	private $ac;
 	private $user;
+	private $user_role;
 	
 	public function __construct(EntityManager $em, $form_factory, AC $ac, UserPasswordEncoderInterface $encoder)
     {
@@ -88,6 +91,28 @@ class UserPersist
 		$this->user->setPasswordExpired(true);
 		
 		$this->em->persist($this->user);
+		$this->em->flush();
+	}
+	
+	public function getFormRoleAssign($user)
+	{
+		$this->user_role = new UserRole();
+		$this->user_role->setUser($user);
+		$this->user_role->setUserId($user->getId());
+		return $this->form_factory->create(UserRoleCreateType::class, $this->user_role, array('validation_groups' => array('create')));
+	}
+	
+	public function insertRole()
+	{
+		$role = $this->em->getRepository('KsCoreBundle:Role')->find($this->user_role->getRoleId());
+		$this->user_role->setRole($role);
+		$this->em->persist($this->user_role);
+		$this->em->flush();
+	}
+	
+	public function deleteRole($user_role)
+	{
+		$this->em->remove($user_role);
 		$this->em->flush();
 	}
 }
