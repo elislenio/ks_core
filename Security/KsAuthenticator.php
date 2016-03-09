@@ -20,6 +20,7 @@ class KsAuthenticator implements SimpleFormAuthenticatorInterface
 	private $ldap;
 	private $dnString;
 
+    public function __construct(UserChecker $userChecker, UserPasswordEncoderInterface $encoder, $pwd_management, LdapClient $ldap = null, $dnString)
     {
         $this->userChecker = $userChecker;
 		$this->encoder = $encoder;

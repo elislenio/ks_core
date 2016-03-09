@@ -6,6 +6,7 @@ services:
     # User Authentication
     ks.core.ks_authenticator:
         class:     Ks\CoreBundle\Security\KsAuthenticator
+        arguments: ["@ks.core.user_checker", "@security.password_encoder", "%ks.core.pwd_management%", "@?ldap", "%ks.core.ldap_user_dn%"]
 
     # Access control service
     ks.core.ac:
