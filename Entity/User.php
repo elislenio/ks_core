@@ -504,32 +504,30 @@ class User implements AdvancedUserInterface, \Serializable
     }
 
     /** @see \Serializable::serialize() */
+	/* Do not remove password or salt, to avoid a redirect loop */
     public function serialize()
     {
 		return serialize(array(
             $this->id,
             $this->username,
             $this->enabled,
-			$this->locked
-			//$this->roles,
-			//$this->password,
-			//$this->password_expired,
-            //$this->salt
+			$this->locked,
+			$this->password,
+			$this->salt
         ));
     }
 
     /** @see \Serializable::unserialize() */
+	/* Do not remove password or salt, to avoid a redirect loop */
     public function unserialize($serialized)
     {
 		list (
             $this->id,
             $this->username,
             $this->enabled,
-			$this->locked
-			//$this->roles,
-			//$this->password,
-            //$this->password_expired,
-            //$this->salt
+			$this->locked,
+			$this->password,
+			$this->salt
         ) = unserialize($serialized);
     }
 

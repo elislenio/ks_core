@@ -43,30 +43,5 @@ class KsCoreExtension extends ConfigurableExtension implements PrependExtensionI
 	
 	public function prepend(ContainerBuilder $container)
     {
-        /*
-		// get all bundles
-		$bundles = $container->getParameter('kernel.bundles');
-		
-		// Security: 
-		// InvalidConfigurationException: You are not allowed to define new elements for path "security.firewalls". Please define all elements for this path in one config file.
-		if (isset($bundles['SecurityBundle'])) {
-			
-			$config = array(
-				'firewalls' => array(
-					'main' => array(
-						'simple_form' => array(
-								'provider' => 'ks_user',
-								'authenticator' => 'ks.core.ldap_authenticator',
-								'login_path' => 'login',
-								'check_path' => 'login_check',
-								'csrf_token_generator' => 'security.csrf.token_manager'
-							)
-						)
-					)
-				);
-				
-			$container->prependExtensionConfig('security', $config);
-		}
-		*/
     }
 }

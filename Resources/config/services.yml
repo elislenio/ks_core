@@ -3,10 +3,9 @@ services:
     ks.core.user_checker:
         class: Ks\CoreBundle\Security\UserChecker
 
-    # LDAP Authentication
-    ks.core.ldap_authenticator:
-        class:     Ks\CoreBundle\Security\LdapAuthenticator
-        arguments: ["@ks.core.user_checker", "@security.password_encoder", "@ldap", "%ks.core.ldap_user_dn%"]
+    # User Authentication
+    ks.core.ks_authenticator:
+        class:     Ks\CoreBundle\Security\KsAuthenticator
 
     # Access control service
     ks.core.ac:
