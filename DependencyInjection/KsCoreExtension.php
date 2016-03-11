@@ -25,6 +25,16 @@ class KsCoreExtension extends ConfigurableExtension implements PrependExtensionI
 		else
 			$container->setParameter('ks.core.pwd_management', "local");
 		
+		if (isset($mergedConfig['login_security']))
+			$container->setParameter('ks.core.login_security', $mergedConfig['login_security']);
+		else
+			$container->setParameter('ks.core.login_security', 'none');
+		
+		if (isset($mergedConfig['login_security_threshold']))
+			$container->setParameter('ks.core.login_security_threshold', $mergedConfig['login_security_threshold']);
+		else
+			$container->setParameter('ks.core.login_security_threshold', 3);
+		
 		// maybe this here ?
 		//$container->setParameter('security.exception_listener.class', 'Ks\CoreBundle\Security\Firewall\ExceptionListener');
 		

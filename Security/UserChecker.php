@@ -7,18 +7,40 @@ use Symfony\Component\Security\Core\Exception\CredentialsExpiredException;
 use Symfony\Component\Security\Core\Exception\LockedException;
 use Symfony\Component\Security\Core\Exception\DisabledException;
 use Symfony\Component\Security\Core\Exception\AccountExpiredException;
+use Ks\CoreBundle\Services\UserPersist;
 
 class UserChecker implements UserCheckerInterface
 {
 	private $user;
 	private $preAuthRules;
 	private $postAuthRules;
+	private $user_model;
+	private $login_security;
+	private $login_security_threshold;
 	
-	public function __construct()
+	public function __construct(UserPersist $user_model, $login_security, $login_security_threshold)
     {
-        $this->preAuthRules = array('enabled');
-		$this->postAuthRules = array('locked', 'account_expired', 'credentials_expired');
+		$this->user_model = $user_model;
+		$this->login_security = $login_security;
+		$this->login_security_threshold = $login_security_threshold;
+        $this->preAuthRules = array('locked', 'enabled', 'account_expired');
+		$this->postAuthRules = array('credentials_expired');
     }
+	
+	public function setUser(UserInterface $user)
+	{
+		if (!$user instanceof AdvancedUserInterface) {
+            return;
+        }
+		
+		$this->user = $user;
+		return $this;
+	}
+	
+	public function getUserModel()
+	{
+		return $this->user_model;
+	}
 	
 	public function setPreAuthRules($rules)
 	{
@@ -99,29 +121,44 @@ class UserChecker implements UserCheckerInterface
 	
 	public function checkPreAuth(UserInterface $user)
     {
-		//die('checkPreAuth');
-        if (!$user instanceof AdvancedUserInterface) {
-            return;
-        }
-		
-		$this->user = $user;
-		
-        foreach($this->preAuthRules as $rule)
+		foreach($this->preAuthRules as $rule)
 			$this->executeRule($rule);
 			
     }
 
     public function checkPostAuth(UserInterface $user)
     {
-		//die('checkPostAuth');
-        if (!$user instanceof AdvancedUserInterface) {
-            return;
-        }
-		
-		$this->user = $user;
-		
-        foreach($this->postAuthRules as $rule)
+		foreach($this->postAuthRules as $rule)
 			$this->executeRule($rule);
-		
     }
+	
+	public function registerLoginAttempt()
+	{
+		$this->user_model->registerLoginFailure($this->user);
+		
+		if ($this->login_security == 'none')
+			return;
+		
+		// Activate security if threshold is reached
+		if ($this->user->getFailureCount() >= $this->login_security_threshold)
+		{
+			if ($this->login_security == 'lock')
+				$this->user_model->lockAccount($this->user);
+		}
+	}
+	
+	public function resetFailureCount()
+	{
+		$this->user_model->resetFailureCount($this->user);
+	}
+	
+	public function registerLoginSuccess()
+	{
+		$this->user_model->registerLoginSuccess($this->user);
+	}
+	
+	public function isLocked()
+	{
+		return $this->user->getLocked();
+	}
 }

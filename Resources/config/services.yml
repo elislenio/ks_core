@@ -1,12 +1,4 @@
 services:
-    # User Checker
-    ks.core.user_checker:
-        class: Ks\CoreBundle\Security\UserChecker
-
-    # User Authentication
-    ks.core.ks_authenticator:
-        class:     Ks\CoreBundle\Security\KsAuthenticator
-        arguments: ["@ks.core.user_checker", "@security.password_encoder", "%ks.core.pwd_management%", "@?ldap", "%ks.core.ldap_user_dn%"]
 
     # Access control service
     ks.core.ac:
@@ -84,3 +76,13 @@ services:
     ks.core.ac_model:
         class: Ks\CoreBundle\Services\AcPersist
         arguments: ["@doctrine.orm.entity_manager", "@form.factory"]
+
+    # User Checker
+    ks.core.user_checker:
+        class: Ks\CoreBundle\Security\UserChecker
+        arguments: ["@ks.core.user_model", "%ks.core.login_security%", "%ks.core.login_security_threshold%"]
+
+    # User Authentication
+    ks.core.ks_authenticator:
+        class:     Ks\CoreBundle\Security\KsAuthenticator
+        arguments: ["@ks.core.user_checker", "@security.password_encoder", "%ks.core.pwd_management%", "@?ldap", "%ks.core.ldap_user_dn%"]

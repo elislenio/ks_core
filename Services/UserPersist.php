@@ -86,8 +86,17 @@ class UserPersist
 		$this->user->setPassword($encoded);
 		$this->user->setPasswordExpired(true);
 		
+		// Unlock Account
+		$this->user->unlockAccount();
+		
 		$this->em->persist($this->user);
 		$this->em->flush();
+	}
+	
+	public function getFormPwdReset($user)
+	{
+		$this->user = $user;
+		return $this->form_factory->create(UserPwdResetType::class, $this->user, array('validation_groups' => array('pwdreset')));
 	}
 	
 	public function setPasswordSelf($user, $password)
@@ -100,12 +109,6 @@ class UserPersist
 		
 		$this->em->persist($user);
 		$this->em->flush();
-	}
-	
-	public function getFormPwdReset($user)
-	{
-		$this->user = $user;
-		return $this->form_factory->create(UserPwdResetType::class, $this->user, array('validation_groups' => array('pwdreset')));
 	}
 	
 	public function getFormPwdSelfChange()
@@ -138,5 +141,41 @@ class UserPersist
 		$this->user_role->setUser($user);
 		$this->user_role->setUserId($user->getId());
 		return $this->form_factory->create(UserRoleCreateType::class, $this->user_role, array('validation_groups' => array('create')));
+	}
+	
+	public function registerLoginFailure($user)
+	{
+		$user->registerLoginFailure();
+		$this->em->persist($user);
+		$this->em->flush();
+	}
+	
+	public function resetFailureCount($user)
+	{
+		$user->resetLoginFailure();
+		$this->em->persist($user);
+		$this->em->flush();
+	}
+	
+	public function registerLoginSuccess($user)
+	{
+		$now = new \DateTime("now");
+		$user->setLastLogin($now);
+		$this->em->persist($user);
+		$this->em->flush();
+	}
+	
+	public function lockAccount($user)
+	{
+		$user->setLocked(true);
+		$this->em->persist($user);
+		$this->em->flush();
+	}
+	
+	public function unlockAccount($user)
+	{
+		$user->unlockAccount();
+		$this->em->persist($user);
+		$this->em->flush();
 	}
 }

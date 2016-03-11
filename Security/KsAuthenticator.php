@@ -34,9 +34,10 @@ class KsAuthenticator implements SimpleFormAuthenticatorInterface
 		try {
             $user = $userProvider->loadUserByUsername($token->getUsername());
         } catch (UsernameNotFoundException $e) {
-			throw new CustomUserMessageAuthenticationException('Invalid username or password');
+			throw new CustomUserMessageAuthenticationException('Invalid credentials.');
         }
 		
+		$this->userChecker->setUser($user);
 		$username = $token->getUsername();
 		$password = $token->getCredentials();
 		
@@ -51,13 +52,24 @@ class KsAuthenticator implements SimpleFormAuthenticatorInterface
 				
 				$this->ldap->bind($dn, $password);
 				
+				$this->userChecker->resetFailureCount();
 				// do not check for credentials expired since this is done in the LDAP server
-				$rules = array('locked', 'account_expired');
-				$this->userChecker->setPostAuthRules($rules);
+				$this->userChecker->setPostAuthRules(array());
 				$this->userChecker->checkPostAuth($user);
 				
 			} catch (ConnectionException $e) {
-				throw new CustomUserMessageAuthenticationException($e->getMessage());
+				
+				$cause = $e->getMessage();
+				
+				if ($cause == 'Invalid credentials')
+				{
+					$this->userChecker->registerLoginAttempt();
+					throw new CustomUserMessageAuthenticationException('Invalid credentials.');
+				}
+				else
+				{
+					throw new CustomUserMessageAuthenticationException($cause);
+				}
 			}
 		}
 		else
@@ -65,8 +77,16 @@ class KsAuthenticator implements SimpleFormAuthenticatorInterface
 			$this->userChecker->checkPreAuth($user);
 			
 			if (! $this->encoder->isPasswordValid($user, $password))
-				throw new CustomUserMessageAuthenticationException('Invalid username or password');
+			{
+				$this->userChecker->registerLoginAttempt();
 				
+				if ($this->userChecker->isLocked())
+					throw new CustomUserMessageAuthenticationException('Account is locked.');
+				else
+					throw new CustomUserMessageAuthenticationException('Invalid credentials.');
+			}
+			
+			$this->userChecker->resetFailureCount();
 			$this->userChecker->checkPostAuth($user);
 		}
 		
@@ -76,6 +96,8 @@ class KsAuthenticator implements SimpleFormAuthenticatorInterface
 			$providerKey,
 			$user->getRoles()
 		);
+		
+		$this->userChecker->registerLoginSuccess();
 		
 		return $user_token;
     }

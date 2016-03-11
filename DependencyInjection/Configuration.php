@@ -14,6 +14,8 @@ class Configuration implements ConfigurationInterface
             ->children()
 				->scalarNode('user_management')->end()
 				->scalarNode('pwd_management')->end()
+				->scalarNode('login_security')->end()
+				->integerNode('login_security_threshold')->end()
 				->scalarNode('ldap_user_dn')->end()
             ->end()
         ;

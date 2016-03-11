@@ -116,6 +116,21 @@ class User implements AdvancedUserInterface, \Serializable
     private $updated;
 	
 	/**
+     * @ORM\Column(type="datetime", nullable=true)
+	 */
+    private $last_login;
+	
+	/**
+     * @ORM\Column(type="datetime", nullable=true)
+	 */
+    private $last_login_attempt;
+	
+	/**
+     * @ORM\Column(type="integer")
+	 */
+    private $failure_count;
+	
+	/**
      * Constructor
      *
      */
@@ -553,4 +568,105 @@ class User implements AdvancedUserInterface, \Serializable
     {
         return $this->picture;
     }
+	
+	/**
+     * Set last_login
+     *
+     * @param \DateTime $last_login
+     * @return User
+     */
+    public function setLastLogin($last_login)
+    {
+        $this->last_login = $last_login;
+        return $this;
+    }
+
+    /**
+     * Get last_login
+     *
+     * @return \DateTime 
+     */
+    public function getLastLogin()
+    {
+        return $this->last_login;
+    }
+	
+	/**
+     * Set last_login_attempt
+     *
+     * @param \DateTime $last_login_attempt
+     * @return User
+     */
+    public function setLastLoginAttempt($last_login_attempt)
+    {
+        $this->last_login_attempt = $last_login_attempt;
+        return $this;
+    }
+
+    /**
+     * Get last_login_attempt
+     *
+     * @return \DateTime 
+     */
+    public function getLastLoginAttempt()
+    {
+        return $this->last_login_attempt;
+    }
+	
+	/**
+     * Set failure_count
+     *
+     * @param integer $failure_count
+     * @return User
+     */
+    public function setFailureCount($failure_count)
+    {
+        $this->failure_count = $failure_count;
+        return $this;
+    }
+
+    /**
+     * Get failure_count
+     *
+     * @return integer 
+     */
+    public function getFailureCount()
+    {
+        return $this->failure_count;
+    }
+	
+	/**
+     * Set last_login_attempt and increment failure_count by 1
+     *
+     * @return User
+     */
+    public function registerLoginFailure()
+    {
+		$this->last_login_attempt = new \DateTime("now");
+		$this->failure_count++;
+        return $this;
+    }
+	
+	/**
+     * Reset last_login_attempt and failure_count
+     *
+     * @return User
+     */
+    public function resetLoginFailure()
+    {
+		$this->last_login_attempt = null;
+		$this->failure_count = 0;
+        return $this;
+    }
+	
+	/**
+     * Reset locked, last_login_attempt and failure_count
+     *
+     * @return User
+     */
+	public function unlockAccount()
+	{
+		$this->locked = false;
+		return $this->resetLoginFailure();
+	}
 }

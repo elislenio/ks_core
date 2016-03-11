@@ -31,7 +31,7 @@ class UserEditType extends AbstractType
 			->add('first_name', FormType\TextType::class)
 			->add('last_name', FormType\TextType::class)
 			->add('picture', FormType\TextType::class)
-			->add('locked', FormType\CheckboxType::class);
+			->add('enabled', FormType\CheckboxType::class);
 		
 		if ($this->ac->localPasswordEnabled())
 		{
