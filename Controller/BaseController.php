@@ -24,7 +24,7 @@ class BaseController extends Controller
 		
 		switch ($code)
 		{
-			case '23000':
+			case 1062:
 				$msg = 'El registro que intenta crear ya existe.';
 				break;
 			default:
@@ -35,10 +35,26 @@ class BaseController extends Controller
 		return $msg;
 	}
 	
+	protected function getPDOException($e)
+	{
+		if ($e instanceof PDOException)
+			return $e;
+		
+		$prev = $e->getPrevious();
+		
+		if (! $prev)
+			return $e;
+		
+		return $this->getPDOException($prev);
+	}
+	
 	protected function handleException($e)
 	{
-		$this->get('logger')->error($e->getMessage());
-		$this->pdo_exception = $e->getPrevious();
-		return $this->translateError($this->pdo_exception->getCode());
+		$this->pdo_exception = $this->getPDOException($e);
+		$err = $this->pdo_exception->errorInfo;
+		$code = $err[1];
+		$msg = $err[2];
+		$this->get('logger')->error($msg);
+		return $this->translateError($code);
 	}
 }

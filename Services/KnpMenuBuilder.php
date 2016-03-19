@@ -6,11 +6,11 @@ use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Knp\Menu\MenuFactory;
 use Knp\Menu\Iterator\RecursiveItemIterator;
-use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManager;
 
 class KnpMenuBuilder
 {
-	private $conn;
+	private $em;
 	private $router;
 	private $factory;
 	private $knpmenu;
@@ -18,9 +18,10 @@ class KnpMenuBuilder
 	/**
      * Constructor
      */
-    public function __construct(Router $router)
+    public function __construct(Router $router, EntityManager $em)
     {
 		$this->router = $router;
+		$this->em = $em;
 		$this->factory = new MenuFactory();
     }
 	
@@ -28,7 +29,7 @@ class KnpMenuBuilder
 	{
 		if ($user_id)
 		{
-			$stmt = $this->conn->prepare('select c.*
+			$stmt = $this->em->getConnection()->prepare('select c.*
 	from ks_menu_item c
 	left join (
 		select b.ac_id
@@ -54,7 +55,7 @@ class KnpMenuBuilder
 		}
 		else
 		{
-			$qb = $this->conn->createQueryBuilder();
+			$qb = $this->em->getConnection()->createQueryBuilder();
 			$records = $qb->select('*')
 				->from('ks_menu_item', 'a')
 				->andWhere('a.menu_id = ?')
@@ -88,20 +89,6 @@ class KnpMenuBuilder
 			}
 	}
 	
-	private function getRootRecord($menu_id)
-	{
-		// Get the root item
-		$qb = $this->conn->createQueryBuilder();
-		$records = $qb->select('*')
-			->from('ks_menu_item', 'a')
-			->andWhere('a.menu_id = ?')
-			->andWhere('a.parent_id is null')
-			->setParameter(0, $menu_id)
-			->execute()->fetchAll();
-		
-		return $records[0];
-	}
-	
 	private function clearEmptyBranches()
 	{
 		$itemIterator = new RecursiveItemIterator($this->knpmenu);
@@ -121,16 +108,15 @@ class KnpMenuBuilder
 		return true;
 	}
 	
-	public function loadMenu(Connection $conn, $menu_id, $root_id=false, $user_id=false)
+	public function loadMenu($menu_id, $root_id=false, $user_id=false)
 	{
-		$this->conn = $conn;
-		
 		// Get the root item
-		$root = $this->getRootRecord($menu_id);
+		$root = $this->em->getRepository('KsCoreBundle:MenuItem')->getRootItem($menu_id);
+		
 		$this->knpmenu = $this->factory->createItem('root');
 		if ($root_id) $this->knpmenu->setChildrenAttribute('id', $root_id);
 		
-		$this->getChilds($user_id, $menu_id, $root['id'], $this->knpmenu);
+		$this->getChilds($user_id, $menu_id, $root->getId(), $this->knpmenu);
 		
 		if ($user_id)
 		{

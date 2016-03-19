@@ -13,7 +13,7 @@ services:
     # menu builder
     ks.core.menubuilder:
         class: Ks\CoreBundle\Services\KnpMenuBuilder
-        arguments: ["@router"]
+        arguments: ["@router", "@doctrine.orm.entity_manager"]
 
     # User Create Form
     ks.core.form.type.user_create:

@@ -23,8 +23,6 @@ class UserPersist
 	private $form_factory;
 	private $encoder;
 	private $ac;
-	private $user;
-	private $user_role;
 	
 	public function __construct(EntityManager $em, $form_factory, AC $ac, UserPasswordEncoderInterface $encoder)
     {
@@ -34,24 +32,25 @@ class UserPersist
 		$this->encoder = $encoder;
     }
 	
-	public function insert()
+	public function insert($user)
 	{
-		$this->user->setPasswordExpired(true);
+		$user->setPasswordExpired(true);
+		$user->setFailureCount(0);
 			
 		if ($this->ac->localPasswordEnabled())
 		{
 			// Password encoding
-			$encoded = $this->encoder->encodePassword($this->user, $this->user->getGeneratedPassword());
-			$this->user->setPassword($encoded);
+			$encoded = $this->encoder->encodePassword($user, $user->getGeneratedPassword());
+			$user->setPassword($encoded);
 		}
 		
-		$this->em->persist($this->user);
+		$this->em->persist($user);
 		$this->em->flush();
 	}
 	
-	public function update()
+	public function update($user)
 	{
-		$this->em->persist($this->user);
+		$this->em->persist($user);
 		$this->em->flush();
 	}
 	
@@ -61,42 +60,38 @@ class UserPersist
 		$this->em->flush();
 	}
 	
-	public function getFormCreate()
+	public function getFormCreate($user)
 	{
-		$this->user = new User();
-		
 		$validation_groups = array('create');
 		
 		if ($this->ac->localPasswordEnabled()) 
 			$validation_groups[] = 'create_local';
 		
-		return $this->form_factory->create(UserCreateType::class, $this->user, array('validation_groups' => $validation_groups));
+		return $this->form_factory->create(UserCreateType::class, $user, array('validation_groups' => $validation_groups));
 	}
 	
 	public function getFormEdit($user)
 	{
-		$this->user = $user;
-		return $this->form_factory->create(UserEditType::class, $this->user, array('validation_groups' => array('update')));
+		return $this->form_factory->create(UserEditType::class, $user, array('validation_groups' => array('update')));
 	}
 	
-	public function resetPwd()
+	public function resetPwd($user)
 	{
 		// Password encoding
-		$encoded = $this->encoder->encodePassword($this->user, $this->user->getGeneratedPassword());
-		$this->user->setPassword($encoded);
-		$this->user->setPasswordExpired(true);
+		$encoded = $this->encoder->encodePassword($user, $user->getGeneratedPassword());
+		$user->setPassword($encoded);
+		$user->setPasswordExpired(true);
 		
 		// Unlock Account
-		$this->user->unlockAccount();
+		$user->unlockAccount();
 		
-		$this->em->persist($this->user);
+		$this->em->persist($user);
 		$this->em->flush();
 	}
 	
 	public function getFormPwdReset($user)
 	{
-		$this->user = $user;
-		return $this->form_factory->create(UserPwdResetType::class, $this->user, array('validation_groups' => array('pwdreset')));
+		return $this->form_factory->create(UserPwdResetType::class, $user, array('validation_groups' => array('pwdreset')));
 	}
 	
 	public function setPasswordSelf($user, $password)
@@ -121,11 +116,13 @@ class UserPersist
 		return $this->form_factory->create(UserPwdChangeType::class);
 	}
 	
-	public function insertRole()
+	public function insertRole($user_role)
 	{
-		$role = $this->em->getRepository('KsCoreBundle:Role')->find($this->user_role->getRoleId());
-		$this->user_role->setRole($role);
-		$this->em->persist($this->user_role);
+		$role = $this->em->getRepository('KsCoreBundle:Role')->find($user_role->getRoleId());
+		$user = $this->em->getRepository('KsCoreBundle:User')->find($user_role->getUserId());
+		$user_role->setRole($role);
+		$user_role->setUser($user);
+		$this->em->persist($user_role);
 		$this->em->flush();
 	}
 	
@@ -135,12 +132,9 @@ class UserPersist
 		$this->em->flush();
 	}
 	
-	public function getFormRoleAssign($user)
+	public function getFormRoleAssign($user_role)
 	{
-		$this->user_role = new UserRole();
-		$this->user_role->setUser($user);
-		$this->user_role->setUserId($user->getId());
-		return $this->form_factory->create(UserRoleCreateType::class, $this->user_role, array('validation_groups' => array('create')));
+		return $this->form_factory->create(UserRoleCreateType::class, $user_role, array('validation_groups' => array('create')));
 	}
 	
 	public function registerLoginFailure($user)
