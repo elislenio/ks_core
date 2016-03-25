@@ -1,12 +1,11 @@
 <?php
-
 namespace Ks\CoreBundle\Classes;
 
-use Doctrine\DBAL\Connection;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Event\AuthenticationFailureEvent;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Doctrine\ORM\EntityManager;
 
 /**
  * AuthenticationListener
@@ -15,14 +14,14 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class AuthenticationListener
 {
 	private $token_storage;
-	private $conn;
+	private $em;
 	private $requestStack;
 	
-	public function __construct(TokenStorage $token_storage, Connection $conn, RequestStack $requestStack)
+	public function __construct(TokenStorage $token_storage, EntityManager $em, RequestStack $requestStack)
     {
 		$this->token_storage = $token_storage;
-        $this->conn = $conn;
-		$this->requestStack = $requestStack;
+		$this->em = $em;
+        $this->requestStack = $requestStack;
     }
 	
 	/**
@@ -31,27 +30,19 @@ class AuthenticationListener
 	public function saveToSession()
 	{
 		$user = $this->token_storage->getToken()->getUser();
-		
-		$qb = $this->conn->createQueryBuilder();
-		
-		$qb
-			->select('a.ac_id', 'a.mask')
-			->from('ks_acl', 'a')
-			->innerJoin('a', 'ks_user_role', 'b', 'a.role_id = b.role_id')
-			->where('b.user_id = ?')
-			->setParameter(0, $user->getId())
-		;
-		
-		$grants = $qb->execute()->fetchAll();
+		$acls = $this->em->getRepository('KsCoreBundle:AccessControlList')->getUserGrants($user->getId());
 		$granted = array();
 		
-		// Actual permissions
-		foreach($grants as $a)
+		// Cumulative permissions
+		foreach($acls as $acl)
 		{
-			if (isset($granted[$a['ac_id']]))
-				$granted[$a['ac_id']] = $granted[$a['ac_id']]|$a['mask'];
+			$ac_id = $acl['ac_id'];
+			$mask = $acl['mask'];
+			
+			if (isset($granted[$ac_id]))
+				$granted[$ac_id] = $granted[$ac_id]|$mask;
 			else
-				$granted[$a['ac_id']] = $a['mask'];
+				$granted[$ac_id] = $mask;
 		}
 		
 		// Save on session

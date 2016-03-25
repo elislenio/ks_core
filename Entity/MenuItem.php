@@ -56,13 +56,13 @@ class MenuItem
     private $item_order;
 	
 	/**
-	 * @ORM\Column(type="boolean")
+	 * @ORM\Column(type="boolean", nullable=true)
 	 * @Gedmo\Versioned
 	 */
     private $is_branch;
 	
 	/**
-	 * @ORM\Column(type="boolean")
+	 * @ORM\Column(type="boolean", nullable=true)
 	 * @Gedmo\Versioned
 	 */
     private $visible;

@@ -1,15 +1,20 @@
 <?php
 namespace Ks\CoreBundle\Entity;
 
+use Doctrine\ORM\EntityRepository;
+use Ks\CoreBundle\Classes\DbAbs;
+
 /**
  * RoleRepository
  *
  */
-class RoleRepository extends \Doctrine\ORM\EntityRepository
+class RoleRepository extends EntityRepository
 {
 	public function getAvailableControlList($role_id)
     {
-		$qb = $this->getEntityManager()->getConnection()->createQueryBuilder()
+		$conn = $this->getEntityManager()->getConnection();
+		
+		$qb = $conn->createQueryBuilder()
 			->select('a.id, a.description')
 			->from('ks_ac', 'a')
 			->andWhere('a.id not in (
@@ -20,6 +25,10 @@ class RoleRepository extends \Doctrine\ORM\EntityRepository
 			->setParameter('role_id', $role_id);
 		
 		$records = $qb->execute()->fetchAll();
+		
+		// DB portability
+		$engine = DbAbs::getDbEngine($conn);
+		$records = DbAbs::setCase($engine, $records);
 		
 		return $records;
 	}

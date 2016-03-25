@@ -90,11 +90,12 @@ class KsAuthenticator implements SimpleFormAuthenticatorInterface
 			$this->userChecker->checkPostAuth($user);
 		}
 		
+		$roles = $user->getRoles();
 		$user_token = new UsernamePasswordToken(
 			$user,
 			$password,
 			$providerKey,
-			$user->getRoles()
+			$roles
 		);
 		
 		$this->userChecker->registerLoginSuccess();

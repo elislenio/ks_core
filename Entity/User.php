@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Entity(repositoryClass="Ks\CoreBundle\Entity\UserRepository")
  * @Gedmo\Loggable
  */
-class User implements AdvancedUserInterface, \Serializable
+class User implements AdvancedUserInterface
 {
 	/**
      * @ORM\Id
@@ -61,25 +61,25 @@ class User implements AdvancedUserInterface, \Serializable
     private $last_name;
 
     /**
-	 * @ORM\Column(type="boolean")
+	 * @ORM\Column(type="boolean", nullable=true)
 	 * @Gedmo\Versioned
      */
     private $enabled;
 	
 	/**
-	 * @ORM\Column(type="boolean")
+	 * @ORM\Column(type="boolean", nullable=true)
 	 * @Gedmo\Versioned
      */
     private $locked;
 	
 	/**
-     * @ORM\Column(type="boolean")
+     * @ORM\Column(type="boolean", nullable=true)
 	 * @Gedmo\Versioned
      */
     private $password_expired;
 	
 	/**
-     * @ORM\Column(type="string", length=25)
+     * @ORM\Column(type="string", length=64)
 	 * @Gedmo\Versioned
      */
     private $salt;
@@ -111,7 +111,6 @@ class User implements AdvancedUserInterface, \Serializable
 	/**
      * @ORM\Column(type="datetime")
 	 * @Gedmo\Timestampable(on="update")
-	 * @Gedmo\Versioned
 	 */
     private $updated;
 	
@@ -517,36 +516,8 @@ class User implements AdvancedUserInterface, \Serializable
 			
         return $roles;
     }
-
-    /** @see \Serializable::serialize() */
-	/* Do not remove password or salt, to avoid a redirect loop */
-    public function serialize()
-    {
-		return serialize(array(
-            $this->id,
-            $this->username,
-            $this->enabled,
-			$this->locked,
-			$this->password,
-			$this->salt
-        ));
-    }
-
-    /** @see \Serializable::unserialize() */
-	/* Do not remove password or salt, to avoid a redirect loop */
-    public function unserialize($serialized)
-    {
-		list (
-            $this->id,
-            $this->username,
-            $this->enabled,
-			$this->locked,
-			$this->password,
-			$this->salt
-        ) = unserialize($serialized);
-    }
-
-    /**
+	
+	/**
      * Set picture
      *
      * @param string $picture
@@ -669,4 +640,29 @@ class User implements AdvancedUserInterface, \Serializable
 		$this->locked = false;
 		return $this->resetLoginFailure();
 	}
+	
+	/** @see \Serializable::serialize() */
+	/* Do not remove password or salt, to avoid a redirect loop */
+    public function serialize()
+    {
+		$data = serialize(array(
+            $this->id,
+            $this->username,
+			$this->password,
+			$this->salt
+        ));
+		return $data;
+    }
+
+    /** @see \Serializable::unserialize() */
+	public function unserialize($serialized)
+    {
+		list (
+            $this->id,
+            $this->username,
+			$this->password,
+			$this->salt
+        ) = unserialize($serialized);
+    }
+    
 }

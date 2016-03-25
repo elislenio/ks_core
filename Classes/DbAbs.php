@@ -3,8 +3,8 @@ namespace Ks\CoreBundle\Classes;
 
 abstract class DbAbs
 {
-	const ENG_ORCL = 'oracle';
-	const ENG_MYSQL = 'mysql';
+	const ENG_MYSQL = 1;
+	const ENG_ORCL = 2;
 	
 	public static function getDbEngine($conn)
 	{
@@ -55,5 +55,24 @@ abstract class DbAbs
 		// New string
 		$value = implode(' ', $value);
 		return $value;
+	}
+	
+	public static function setCase($engine, $records, $recordset=true)
+	{
+		switch ($engine)
+		{
+			case self::ENG_ORCL:
+				
+				if (!$recordset)
+					return array_change_key_case($records, CASE_LOWER);
+				
+				$rec = array();
+				foreach ($records as $r)
+					$rec[] = array_change_key_case($r, CASE_LOWER);
+				return $rec;
+				break;
+		}
+		
+		return $records;
 	}
 }

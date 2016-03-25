@@ -5,6 +5,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Types;
+use Ks\CoreBundle\Classes\DbAbs;
 
 /**
  * DtReport
@@ -224,12 +225,16 @@ class DtReport
 		// Fetch the data queried from database
 		$fetch_limit = 65000;
 		$i = 0;
-		
+		$engine = DbAbs::getDbEngine($this->qb->getConnection());
+			
 		// output the rows
 		while ($i < $fetch_limit && $row = $results->fetch() )
 		{
 			$record = array();
 			
+			// DB portability
+			$row = DbAbs::setCase($engine, $row, false);
+		
 			foreach ($headings as $k => $h)
 			{
 				$field = $h['field'];
@@ -279,6 +284,10 @@ class DtReport
 		
 		$this->getQuery('full', $request, $filters);
 		$records = $this->qb->execute()->fetchAll();
+		
+		// DB portability
+		$engine = DbAbs::getDbEngine($this->qb->getConnection());
+		$records = DbAbs::setCase($engine, $records);
 		
 		$this->getQuery('count', $request, $filters);
 		$count = $this->qb->execute()->fetchColumn(0);

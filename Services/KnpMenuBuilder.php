@@ -7,6 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Knp\Menu\MenuFactory;
 use Knp\Menu\Iterator\RecursiveItemIterator;
 use Doctrine\ORM\EntityManager;
+use Ks\CoreBundle\Classes\DbAbs;
 
 class KnpMenuBuilder
 {
@@ -27,9 +28,11 @@ class KnpMenuBuilder
 	
 	private function getChilds($user_id, $menu_id, $parent_id, $parentItem)
 	{
+		$conn = $this->em->getConnection();
+		
 		if ($user_id)
 		{
-			$stmt = $this->em->getConnection()->prepare('select c.*
+			$stmt = $conn->prepare('select c.*
 	from ks_menu_item c
 	left join (
 		select b.ac_id
@@ -55,7 +58,7 @@ class KnpMenuBuilder
 		}
 		else
 		{
-			$qb = $this->em->getConnection()->createQueryBuilder();
+			$qb = $conn->createQueryBuilder();
 			$records = $qb->select('*')
 				->from('ks_menu_item', 'a')
 				->andWhere('a.menu_id = ?')
@@ -65,6 +68,10 @@ class KnpMenuBuilder
 				->addOrderBy('a.item_order', 'asc')
 				->execute()->fetchAll();
 		}
+		
+		// DB portability
+		$engine = DbAbs::getDbEngine($conn);
+		$records = DbAbs::setCase($engine, $records);
 		
 		if ($records)
 			foreach ($records as $i)
