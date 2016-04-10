@@ -14,7 +14,7 @@ use Ks\CoreBundle\Entity\AccessControlList;
  * RolePersist
  *
  */
-class RolePersist
+class RoleModel
 {
 	private $em;
 	private $form_factory;
@@ -24,6 +24,16 @@ class RolePersist
 		$this->em = $em;
 		$this->form_factory = $form_factory;
     }
+	
+	public function get($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:Role')->find($id);
+	}
+	
+	public function getACL($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:AccessControlList')->find($id);
+	}
 	
 	public function insert($role)
 	{

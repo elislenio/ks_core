@@ -14,7 +14,7 @@ use Ks\CoreBundle\Entity\AccessControl;
  * MenuPersist
  *
  */
-class MenuPersist
+class MenuModel
 {
 	private $em;
 	private $form_factory;
@@ -24,6 +24,16 @@ class MenuPersist
 		$this->em = $em;
 		$this->form_factory = $form_factory;
     }
+	
+	public function get($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:Menu')->find($id);
+	}
+	
+	public function getItem($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:MenuItem')->find($id);
+	}
 	
 	public function insert($menu)
 	{

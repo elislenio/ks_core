@@ -21,6 +21,17 @@ class ParameterModel
 		$this->form_factory = $form_factory;
     }
 	
+	public function get($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:Parameter')->find($id);
+	}
+	
+	public function getValue($id)
+	{
+		$parameter = $this->em->getRepository('KsCoreBundle:Parameter')->find($id);
+		return $parameter->getValue();
+	}
+	
 	public function insert($param)
 	{
 		$param->normalizeId();

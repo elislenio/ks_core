@@ -17,7 +17,7 @@ use Ks\CoreBundle\Entity\UserRole;
  * UserPersist
  *
  */
-class UserPersist
+class UserModel
 {
 	private $em;
 	private $form_factory;
@@ -31,6 +31,21 @@ class UserPersist
 		$this->ac = $ac;
 		$this->encoder = $encoder;
     }
+	
+	public function get($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:User')->find($id);
+	}
+	
+	public function getByUsername($username)
+	{
+		return $this->em->getRepository('KsCoreBundle:User')->findOneBy(array('username' => $username));
+	}
+	
+	public function getUserRole($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:UserRole')->find($id);
+	}
 	
 	public function insert($user)
 	{

@@ -10,7 +10,7 @@ use Ks\CoreBundle\Entity\AccessControl;
  * AcPersist
  *
  */
-class AcPersist
+class AcModel
 {
 	private $em;
 	private $form_factory;
@@ -20,6 +20,11 @@ class AcPersist
 		$this->em = $em;
 		$this->form_factory = $form_factory;
     }
+	
+	public function get($id)
+	{
+		return $this->em->getRepository('KsCoreBundle:AccessControl')->find($id);
+	}
 	
 	public function insert($ac)
 	{

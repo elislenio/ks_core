@@ -7,7 +7,7 @@ use Symfony\Component\Security\Core\Exception\CredentialsExpiredException;
 use Symfony\Component\Security\Core\Exception\LockedException;
 use Symfony\Component\Security\Core\Exception\DisabledException;
 use Symfony\Component\Security\Core\Exception\AccountExpiredException;
-use Ks\CoreBundle\Services\UserPersist;
+use Ks\CoreBundle\Services\UserModel;
 
 class UserChecker implements UserCheckerInterface
 {
@@ -18,7 +18,7 @@ class UserChecker implements UserCheckerInterface
 	private $login_security;
 	private $login_security_threshold;
 	
-	public function __construct(UserPersist $user_model, $login_security, $login_security_threshold)
+	public function __construct(UserModel $user_model, $login_security, $login_security_threshold)
     {
 		$this->user_model = $user_model;
 		$this->login_security = $login_security;
